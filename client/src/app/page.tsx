@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
 
 export default function Home() {
@@ -8,6 +8,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,6 +16,7 @@ export default function Home() {
     setIsLoading(true);
     setError('');
     setIsPlaying(false);
+    setIsAudioLoading(true);
 
     try {
       const response = await axios.post('http://localhost:5003/api/tts',
@@ -30,7 +32,10 @@ export default function Home() {
         // Set the audio source and play it
         if (audioRef.current) {
           audioRef.current.src = response.data.audio_url;
-          audioRef.current.play();
+          audioRef.current.play().catch(err => {
+            console.error('Audio playback error:', err);
+            setError('Failed to play audio. Please try again.');
+          });
           setIsPlaying(true);
         }
       }
@@ -48,7 +53,10 @@ export default function Home() {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(err => {
+          console.error('Audio playback error:', err);
+          setError('Failed to play audio. Please try again.');
+        });
       }
       setIsPlaying(!isPlaying);
     }
@@ -56,6 +64,21 @@ export default function Home() {
 
   const handleAudioEnded = () => {
     setIsPlaying(false);
+    setIsAudioLoading(false);
+  };
+
+  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error('Audio error:', e);
+    setError('Failed to load audio. Please try again.');
+    setIsAudioLoading(false);
+  };
+
+  const handleAudioLoadStart = () => {
+    setIsAudioLoading(true);
+  };
+
+  const handleAudioCanPlay = () => {
+    setIsAudioLoading(false);
   };
 
   return (
@@ -104,10 +127,10 @@ export default function Home() {
           <div className="audio-controls">
             <button
               onClick={handlePlayPause}
-              disabled={!audioRef.current?.src || isLoading}
+              disabled={!audioRef.current?.src || isLoading || isAudioLoading}
               className="button"
             >
-              {isPlaying ? 'Pause' : 'Play'}
+              {isAudioLoading ? 'Loading...' : isPlaying ? 'Pause' : 'Play'}
             </button>
           </div>
 
@@ -115,6 +138,9 @@ export default function Home() {
           <audio
             ref={audioRef}
             onEnded={handleAudioEnded}
+            onError={handleAudioError}
+            onLoadStart={handleAudioLoadStart}
+            onCanPlay={handleAudioCanPlay}
             style={{ display: 'none' }}
           />
         </div>
