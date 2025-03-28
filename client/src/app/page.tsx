@@ -1,203 +1,178 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import axios from 'axios';
+import { useState } from "react";
+import axios from "axios";
+import styles from "./page.module.css";
+import Avatar from "../components/Avatar/Avatar";
 
-interface TimingData {
-  characters: string[];
-  character_start_times_seconds: number[];
-  character_end_times_seconds: number[];
+interface AvatarResponse {
+  talk_id: string;
+  status: string;
+  result_url?: string;
 }
 
-interface TTSResponse {
-  success: boolean;
-  audio_url: string;
-  timing: {
-    alignment: TimingData;
-    normalized_alignment: TimingData;
-  };
+interface VideoHistoryItem {
+  url: string;
+  text: string;
 }
 
 export default function Home() {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
-  const [timingData, setTimingData] = useState<TimingData | null>(null);
-  const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [videoHistory, setVideoHistory] = useState<VideoHistoryItem[]>([]);
+  const maxChars = 350;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    setIsPlaying(false);
-    setIsAudioLoading(true);
-    setTimingData(null);
-    setCurrentCharIndex(null);
+  // Function to poll the GET endpoint for talk status.
+  const pollTalkStatus = async (talkId: string, inputText: string) => {
+    const SERVER_URL = "http://localhost:5003";
+    let elapsed = 0;
+    const timeout = 120; // seconds
+    const pollInterval = 10; // seconds
 
-    try {
-      const response = await axios.post<TTSResponse>('http://localhost:5003/api/tts',
-        { text },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+    while (elapsed < timeout) {
+      try {
+        const res = await axios.get<AvatarResponse>(`${SERVER_URL}/api/talk/${talkId}`);
+        const status = res.data.status;
+        console.log("Talk status:", status);
+        if (status === "done" && res.data.result_url) {
+          const videoUrl = res.data.result_url;
+          setVideoUrl(videoUrl);
+          setIsPlaying(true);
+
+          // Update history if valid URL.
+          setVideoHistory((prev) => {
+            const newHistory = [
+              { url: videoUrl, text: inputText },
+              ...prev,
+            ].slice(0, 3);
+            return newHistory;
+          });
+          return;
         }
+      } catch (err) {
+        console.error("Failed to fetch talk status:", err);
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval * 1000));
+      elapsed += pollInterval;
+    }
+    setError("Timed out waiting for avatar video.");
+  };
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+
+    setIsLoading(true);
+    setError("");
+    setVideoUrl(null);
+    setIsPlaying(false);
+
+    const SERVER_URL = "http://localhost:5003";
+    try {
+      const response = await axios.post<AvatarResponse>(
+        `${SERVER_URL}/api/generate`,
+        { text },
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      if (response.data.success && response.data.audio_url) {
-        // Set timing data
-        setTimingData(response.data.timing.normalized_alignment);
-
-        // Set the audio source and play it
-        if (audioRef.current) {
-          audioRef.current.src = response.data.audio_url;
-          audioRef.current.play().catch(err => {
-            console.error('Audio playback error:', err);
-            setError('Failed to play audio. Please try again.');
-          });
-          setIsPlaying(true);
-        }
+      if (response.data.talk_id) {
+        console.log("Talk ID:", response.data.talk_id);
+        await pollTalkStatus(response.data.talk_id, text);
+      } else {
+        setError("Avatar generation failed.");
       }
-
-    } catch (err) {
-      setError('Failed to generate speech. Please try again.');
-      console.error('Error:', err);
+    } catch (err: any) {
+      console.error("Error during generation:", err);
+      setError("Generation error. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(err => {
-          console.error('Audio playback error:', err);
-          setError('Failed to play audio. Please try again.');
-        });
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleAudioEnded = () => {
-    setIsPlaying(false);
-    setIsAudioLoading(false);
-    setCurrentCharIndex(null);
-  };
-
-  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
-    console.error('Audio error:', e);
-    setError('Failed to load audio. Please try again.');
-    setIsAudioLoading(false);
-  };
-
-  const handleAudioLoadStart = () => {
-    setIsAudioLoading(true);
-  };
-
-  const handleAudioCanPlay = () => {
-    setIsAudioLoading(false);
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current && timingData) {
-      const currentTime = audioRef.current.currentTime;
-      const charIndex = timingData.character_start_times_seconds.findIndex(
-        (startTime, index) => {
-          const endTime = timingData.character_end_times_seconds[index];
-          return currentTime >= startTime && currentTime < endTime;
-        }
-      );
-
-      if (charIndex !== -1) {
-        setCurrentCharIndex(charIndex);
-      }
-    }
+  const handleReplay = (url: string) => {
+    setVideoUrl(url);
+    setIsPlaying(true);
   };
 
   return (
-    <main>
-      <div className="container">
-        <h1 className="title">
-          AI Avatar Text-to-Speech
-        </h1>
+    <main className={styles.main}>
+      <div className={styles.container}>
+        <h1 className={styles.title}>AI Avatar Text-to-Speech</h1>
 
-        <div className="card">
-          <form onSubmit={handleSubmit} className="form">
-            <div className="form-group">
-              <label htmlFor="text" className="label">
-                Enter text to convert to speech
-              </label>
-              <textarea
-                id="text"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className="textarea"
-                placeholder="Type your text here..."
-              />
-            </div>
+        {/* Subtitle placed right under the title */}
+        <div className={styles.subtitle}>
+          <p>
+            GitHub Repo: <a href="https://github.com/amanzoni1/avatar-tts" target="_blank" rel="noopener noreferrer">View Code</a> |
+            Short Video: <a href="https://youtu.be/yourvideoid" target="_blank" rel="noopener noreferrer">Watch Presentation</a>
+          </p>
+        </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="button"
-            >
-              {isLoading ? 'Generating...' : 'Generate Speech'}
-            </button>
+        <div className={styles.twoColumn}>
+          {/* Left Column: Avatar container */}
+          <div className={styles.avatarContainer}>
+            <Avatar
+              videoUrl={videoUrl}
+              isPlaying={isPlaying}
+              onVideoEnd={() => setIsPlaying(false)}
+              onReplay={() => videoUrl && handleReplay(videoUrl)}
+            />
+          </div>
 
-            {error && (
-              <p className="error">{error}</p>
-            )}
-          </form>
+          {/* Right Column: Form container */}
+          <div className={styles.formContainer}>
+            <form onSubmit={handleGenerate} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label htmlFor="text" className={styles.label}>
+                  Enter text to convert to speech
+                </label>
+                <textarea
+                  id="text"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className={styles.textarea}
+                  placeholder="Type your text here..."
+                  maxLength={maxChars}
+                />
+                <p className={styles.charCounter}>{text.length} / {maxChars}</p>
+              </div>
+              <div className={styles.buttonRow}>
+                <button
+                  type="submit"
+                  disabled={isLoading || !text.trim()}
+                  className={styles.generateButton}
+                >
+                  {isLoading ? "Generating..." : "Generate Avatar's Speech"}
+                </button>
+              </div>
+              {error && <p className={styles.error}>{error}</p>}
 
-          <div className="avatar-section">
-            <h2 className="avatar-title">Avatar Display Area</h2>
-            <div className="avatar-container">
-              {timingData ? (
-                <div className="text-display">
-                  {timingData.characters.map((char, index) => (
-                    <span
-                      key={index}
-                      className={`character ${
-                        currentCharIndex === index ? 'active' : ''
-                      }`}
-                    >
-                      {char}
-                    </span>
-                  ))}
+              {/* History Section */}
+              {videoHistory.length > 0 && (
+                <div className={styles.historySection}>
+                  <h3 className={styles.historyTitle}>Recent Generations</h3>
+                  <div className={styles.historyList}>
+                    {videoHistory.map((video, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleReplay(video.url)}
+                        className={styles.historyButton}
+                        title={video.text}
+                        type="button"
+                      >
+                        <span className={styles.replayIcon}>↺</span>
+                        <span className={styles.historyText}>
+                          {video.text.length > 30 ? `${video.text.slice(0, 30)}...` : video.text}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <p className="avatar-placeholder">Avatar will be displayed here</p>
               )}
-            </div>
+            </form>
           </div>
-
-          {/* Audio Controls */}
-          <div className="audio-controls">
-            <button
-              onClick={handlePlayPause}
-              disabled={!audioRef.current?.src || isLoading || isAudioLoading}
-              className="button"
-            >
-              {isAudioLoading ? 'Loading...' : isPlaying ? 'Pause' : 'Play'}
-            </button>
-          </div>
-
-          {/* Hidden Audio Element */}
-          <audio
-            ref={audioRef}
-            onEnded={handleAudioEnded}
-            onError={handleAudioError}
-            onLoadStart={handleAudioLoadStart}
-            onCanPlay={handleAudioCanPlay}
-            onTimeUpdate={handleTimeUpdate}
-            style={{ display: 'none' }}
-          />
         </div>
       </div>
     </main>

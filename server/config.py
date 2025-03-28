@@ -13,9 +13,11 @@ class Config:
     CORS_ORIGINS = ['http://localhost:3003']
 
     # Server settings
-    SERVER_URL = 'http://localhost:5003'
+    NGROK_URL = "https://b79c-94-205-217-109.ngrok-free.app"
+    SERVER_URL = NGROK_URL
+    # SERVER_URL = 'http://localhost:5003'
 
-    # BASE_DIR: set to the server folder (one level up from app folder)
+    # BASE_DIR: set to the server folder
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
     # Audio settings
@@ -23,8 +25,15 @@ class Config:
     os.makedirs(AUDIO_DIR, exist_ok=True)
 
     # TTS Provider settings
-    TTS_PROVIDER = os.environ.get('TTS_PROVIDER', 'gtts')  # 'gtts' or 'elevenlabs'
+    TTS_PROVIDER = os.environ.get('TTS_PROVIDER', 'elevenlabs')  # 'gtts' or 'elevenlabs'
 
     # ElevenLabs settings
-    ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY')
-    ELEVENLABS_VOICE_ID = os.environ.get('ELEVENLABS_VOICE_ID', 'default')  # You can set a default voice ID
+    ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
+    ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID")
+    ELEVENLABS_MAX_CHARS = 350  # Maximum characters per request (approximately 30 seconds of audio)
+
+    # D-ID settings
+    DID_API_KEY = os.environ.get("DID_API_KEY")
+    DID_API_URL = "https://api.d-id.com/talks"
+    DID_SOURCE_URL = "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
+    DID_WEBHOOK_URL = os.environ.get("DID_WEBHOOK_URL", f"{SERVER_URL}/api/webhook")

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
+import GradientBackground from "@/components/GradientBackground/GradientBackground";
 export const metadata: Metadata = {
   title: "AI Avatar Text-to-Speech",
   description: "An AI-powered avatar that speaks your text",
@@ -13,7 +13,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <GradientBackground />
+        {children}
+      </body>
     </html>
   );
 }
