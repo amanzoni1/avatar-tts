@@ -3,12 +3,29 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 
+interface TimingData {
+  characters: string[];
+  character_start_times_seconds: number[];
+  character_end_times_seconds: number[];
+}
+
+interface TTSResponse {
+  success: boolean;
+  audio_url: string;
+  timing: {
+    alignment: TimingData;
+    normalized_alignment: TimingData;
+  };
+}
+
 export default function Home() {
   const [text, setText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [timingData, setTimingData] = useState<TimingData | null>(null);
+  const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,9 +34,11 @@ export default function Home() {
     setError('');
     setIsPlaying(false);
     setIsAudioLoading(true);
+    setTimingData(null);
+    setCurrentCharIndex(null);
 
     try {
-      const response = await axios.post('http://localhost:5003/api/tts',
+      const response = await axios.post<TTSResponse>('http://localhost:5003/api/tts',
         { text },
         {
           headers: {
@@ -29,6 +48,9 @@ export default function Home() {
       );
 
       if (response.data.success && response.data.audio_url) {
+        // Set timing data
+        setTimingData(response.data.timing.normalized_alignment);
+
         // Set the audio source and play it
         if (audioRef.current) {
           audioRef.current.src = response.data.audio_url;
@@ -65,6 +87,7 @@ export default function Home() {
   const handleAudioEnded = () => {
     setIsPlaying(false);
     setIsAudioLoading(false);
+    setCurrentCharIndex(null);
   };
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
@@ -79,6 +102,22 @@ export default function Home() {
 
   const handleAudioCanPlay = () => {
     setIsAudioLoading(false);
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current && timingData) {
+      const currentTime = audioRef.current.currentTime;
+      const charIndex = timingData.character_start_times_seconds.findIndex(
+        (startTime, index) => {
+          const endTime = timingData.character_end_times_seconds[index];
+          return currentTime >= startTime && currentTime < endTime;
+        }
+      );
+
+      if (charIndex !== -1) {
+        setCurrentCharIndex(charIndex);
+      }
+    }
   };
 
   return (
@@ -119,7 +158,22 @@ export default function Home() {
           <div className="avatar-section">
             <h2 className="avatar-title">Avatar Display Area</h2>
             <div className="avatar-container">
-              <p className="avatar-placeholder">Avatar will be displayed here</p>
+              {timingData ? (
+                <div className="text-display">
+                  {timingData.characters.map((char, index) => (
+                    <span
+                      key={index}
+                      className={`character ${
+                        currentCharIndex === index ? 'active' : ''
+                      }`}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="avatar-placeholder">Avatar will be displayed here</p>
+              )}
             </div>
           </div>
 
@@ -141,6 +195,7 @@ export default function Home() {
             onError={handleAudioError}
             onLoadStart={handleAudioLoadStart}
             onCanPlay={handleAudioCanPlay}
+            onTimeUpdate={handleTimeUpdate}
             style={{ display: 'none' }}
           />
         </div>
