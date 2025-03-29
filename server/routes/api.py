@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file, current_app
 import os
+import time
 import requests
 from services.tts_service import TTSService
 from services.avatar_service import AvatarService
@@ -23,13 +24,19 @@ def generate():
 
         text = data["text"]
 
-        # Step 1: Generate TTS audio.
+        # Generate TTS audio.
         tts_service = TTSService()
         tts_result = tts_service.generate_speech(text)
-        # Construct the full URL for the generated audio.
-        audio_url = f"{current_app.config['SERVER_URL']}/api/audio/{tts_result['filename']}"
+        audio_url = f"{current_app.config['NGROK_URL']}/api/audio/{tts_result['filename']}"
 
-        # Step 2: Generate Avatar Video using the audio.
+        time.sleep(3)
+
+         # Verify audio file is accessible before proceeding
+        audio_path = os.path.join(current_app.config["AUDIO_DIR"], tts_result['filename'])
+        if not os.path.exists(audio_path):
+            return jsonify({"error": "Generated audio file not found"}), 500
+
+        # Generate Avatar Video using the audio.
         avatar_service = AvatarService()
         talk_result = avatar_service.generate_avatar_video(text, audio_url)
 
@@ -48,7 +55,10 @@ def serve_audio(filename):
     try:
         audio_path = os.path.join(current_app.config["AUDIO_DIR"], filename)
         if os.path.exists(audio_path):
-            return send_file(audio_path, mimetype="audio/mpeg")
+            # Set CORS headers to allow D-ID to access the file
+            response = send_file(audio_path, mimetype="audio/mpeg")
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
         else:
             return jsonify({"error": "Audio file not found"}), 404
     except Exception as e:
@@ -60,35 +70,38 @@ def serve_audio(filename):
 def webhook():
     """
     Webhook endpoint for D-ID to call once the video is ready.
-    Logs the callback data for further processing.
     """
     try:
         data = request.get_json()
         current_app.logger.info("D-ID webhook received: %s", data)
-        # Process the webhook data as needed (e.g., update a database, notify frontend, etc.)
+
+        # Import socketio locally to avoid circular dependency
+        from app import socketio
+        socketio.emit("video_ready", data)
+
         return jsonify({"status": "received"}), 200
     except Exception as e:
         current_app.logger.error("Webhook error: %s", str(e))
         return jsonify({"error": "Webhook processing failed"}), 500
 
 
-@api_bp.route("/talk/<talk_id>", methods=["GET"])
-def get_talk_status(talk_id):
-    """
-    Proxy endpoint to fetch talk status from D-ID.
-    Calls D-ID's GET /talks/<talk_id> endpoint using Basic Auth.
-    """
-    try:
-        auth_header = f"Basic {current_app.config['DID_API_KEY']}"
-        headers = {
-            "accept": "application/json",
-            "Authorization": auth_header
-        }
-        url = f"{current_app.config['DID_API_URL']}/{talk_id}"
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return jsonify(response.json()), 200
-    except requests.exceptions.RequestException as e:
-        error_message = f"Failed to fetch talk status: {str(e)}"
-        current_app.logger.error(error_message)
-        return jsonify({"error": error_message}), response.status_code if response else 500
+# @api_bp.route("/talk/<talk_id>", methods=["GET"])
+# def get_talk_status(talk_id):
+#     """
+#     Proxy endpoint to fetch talk status from D-ID.
+#     Calls D-ID's GET /talks/<talk_id> endpoint using Basic Auth.
+#     """
+#     try:
+#         auth_header = f"Basic {current_app.config['DID_API_KEY']}"
+#         headers = {
+#             "accept": "application/json",
+#             "Authorization": auth_header
+#         }
+#         url = f"{current_app.config['DID_API_URL']}/{talk_id}"
+#         response = requests.get(url, headers=headers)
+#         response.raise_for_status()
+#         return jsonify(response.json()), 200
+#     except requests.exceptions.RequestException as e:
+#         error_message = f"Failed to fetch talk status: {str(e)}"
+#         current_app.logger.error(error_message)
+#         return jsonify({"error": error_message}), response.status_code if response else 500

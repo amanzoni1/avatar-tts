@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import styles from '../../app/page.module.css';
 
 interface AvatarProps {
   videoUrl: string | null;
@@ -27,7 +28,7 @@ const Avatar: React.FC<AvatarProps> = ({ videoUrl, isPlaying, onVideoEnd, onRepl
       <img
         src="https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
         alt="Default Avatar"
-        className="w-full h-full object-contain"
+        className={styles.avatarMedia}
       />
     );
   }
@@ -36,7 +37,7 @@ const Avatar: React.FC<AvatarProps> = ({ videoUrl, isPlaying, onVideoEnd, onRepl
     <video
       ref={videoRef}
       src={videoUrl}
-      className="w-full h-full object-contain"
+      className={styles.avatarMedia}
       onEnded={onVideoEnd}
       playsInline
     />

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import io from "socket.io-client";
 import styles from "./page.module.css";
 import Avatar from "../components/Avatar/Avatar";
 
@@ -16,6 +17,8 @@ interface VideoHistoryItem {
   text: string;
 }
 
+const SOCKET_SERVER_URL = "http://localhost:5003";
+
 export default function Home() {
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,40 +29,24 @@ export default function Home() {
   const maxChars = 350;
 
   // Function to poll the GET endpoint for talk status.
-  const pollTalkStatus = async (talkId: string, inputText: string) => {
-    const SERVER_URL = "http://localhost:5003";
-    let elapsed = 0;
-    const timeout = 120; // seconds
-    const pollInterval = 10; // seconds
+  useEffect(() => {
+    const socket = io(SOCKET_SERVER_URL);
 
-    while (elapsed < timeout) {
-      try {
-        const res = await axios.get<AvatarResponse>(`${SERVER_URL}/api/talk/${talkId}`);
-        const status = res.data.status;
-        console.log("Talk status:", status);
-        if (status === "done" && res.data.result_url) {
-          const videoUrl = res.data.result_url;
-          setVideoUrl(videoUrl);
-          setIsPlaying(true);
-
-          // Update history if valid URL.
-          setVideoHistory((prev) => {
-            const newHistory = [
-              { url: videoUrl, text: inputText },
-              ...prev,
-            ].slice(0, 3);
-            return newHistory;
-          });
-          return;
-        }
-      } catch (err) {
-        console.error("Failed to fetch talk status:", err);
+    // Listen for the video_ready event.
+    socket.on("video_ready", (data: any) => {
+      console.log("Received video_ready event:", data);
+      if (data.result_url) {
+        setVideoUrl(data.result_url);
+        setIsPlaying(true);
+        setVideoHistory(prev => [{ url: data.result_url, text }, ...prev].slice(0, 3));
       }
-      await new Promise((resolve) => setTimeout(resolve, pollInterval * 1000));
-      elapsed += pollInterval;
-    }
-    setError("Timed out waiting for avatar video.");
-  };
+    });
+
+    // Clean up the socket when the component unmounts.
+    return () => {
+      socket.disconnect();
+    };
+  }, [text]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +67,6 @@ export default function Home() {
 
       if (response.data.talk_id) {
         console.log("Talk ID:", response.data.talk_id);
-        await pollTalkStatus(response.data.talk_id, text);
       } else {
         setError("Avatar generation failed.");
       }
@@ -101,8 +87,6 @@ export default function Home() {
     <main className={styles.main}>
       <div className={styles.container}>
         <h1 className={styles.title}>AI Avatar Text-to-Speech</h1>
-
-        {/* Subtitle placed right under the title */}
         <div className={styles.subtitle}>
           <p>
             GitHub Repo: <a href="https://github.com/amanzoni1/avatar-tts" target="_blank" rel="noopener noreferrer">View Code</a> |

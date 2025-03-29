@@ -20,16 +20,15 @@ class AvatarService:
         logger.info(f"AvatarService initialized with source URL: {self.source_url}")
 
     def generate_avatar_video(self, text: str, audio_url: str) -> Dict[str, Any]:
-        # We only support the audio script type.
         auth_header = f"Basic {self.did_api_key}"  # "username:password" format
 
         headers = {
             "accept": "application/json",
             "Content-Type": "application/json",
             "Authorization": auth_header
-            # Removed "x-api-key-external" since we are only using external audio.
         }
 
+        # Primary payload using the audio file.
         payload = {
             "source_url": self.source_url,
             "script": {
@@ -44,20 +43,11 @@ class AvatarService:
             "webhook": current_app.config["DID_WEBHOOK_URL"]
         }
 
-        logger.info("Sending request to D-ID API...")
+        logger.info("Sending request to D-ID API with audio script...")
         logger.info(f"Payload: {json.dumps(payload, indent=2)}")
+
         try:
-            response = requests.post(
-                self.api_url,
-                headers=headers,
-                json=payload
-            )
-            logger.info(f"Response Code: {response.status_code}")
-            try:
-                response_json = response.json()
-                logger.info(f"Response Body: {json.dumps(response_json, indent=2)}")
-            except json.JSONDecodeError:
-                logger.error(f"Response Body: {response.text}")
+            response = requests.post(self.api_url, headers=headers, json=payload)
             response.raise_for_status()
             result = response.json()
             return {
@@ -66,13 +56,40 @@ class AvatarService:
                 "result_url": result.get("result_url")
             }
         except requests.exceptions.RequestException as e:
-            err_msg = f"Failed to generate avatar video: {e}"
-            logger.error(err_msg)
-            if hasattr(e, "response") and e.response is not None:
+            error_json = {}
+            try:
+                error_json = e.response.json()
+            except Exception:
+                logger.error("Failed to parse error JSON from audio request.")
+
+            description = error_json.get("description", "").lower()
+            logger.error(f"Audio request failed: {json.dumps(error_json, indent=2)}")
+
+            # Check if the error description indicates that the audio file could not be validated.
+            if "cannot validate" in description and "audio" in description:
+                logger.info("Audio validation failed; falling back to text script.")
+                fallback_payload = {
+                    "source_url": self.source_url,
+                    "script": {
+                        "type": "text",
+                        "input": text
+                    },
+                    "config": {
+                        "stitch": True  # Add any other desired config settings
+                    },
+                    "webhook": current_app.config["DID_WEBHOOK_URL"]
+                }
+                logger.info("Sending request to D-ID API with text script fallback...")
+                logger.info(f"Fallback Payload: {json.dumps(fallback_payload, indent=2)}")
                 try:
-                    error_detail = e.response.json().get("message", err_msg)
-                    logger.error(f"Detail: {error_detail}")
-                    err_msg = error_detail
-                except Exception:
-                    pass
-            raise Exception(err_msg)
+                    response = requests.post(self.api_url, headers=headers, json=fallback_payload)
+                    response.raise_for_status()
+                    result = response.json()
+                    return {
+                        "talk_id": result.get("id"),
+                        "status": result.get("status"),
+                        "result_url": result.get("result_url")
+                    }
+                except requests.exceptions.RequestException as fallback_exception:
+                    logger.error(f"Fallback request error: {fallback_exception}")
+            raise Exception(f"Failed to generate avatar video: {e}")

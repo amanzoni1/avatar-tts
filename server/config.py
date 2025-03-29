@@ -13,9 +13,9 @@ class Config:
     CORS_ORIGINS = ['http://localhost:3003']
 
     # Server settings
-    NGROK_URL = "https://b79c-94-205-217-109.ngrok-free.app"
-    SERVER_URL = NGROK_URL
-    # SERVER_URL = 'http://localhost:5003'
+    NGROK_URL = "https://09db-94-205-217-109.ngrok-free.app"
+    # SERVER_URL = NGROK_URL
+    SERVER_URL = 'http://localhost:5003'
 
     # BASE_DIR: set to the server folder
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -36,4 +36,4 @@ class Config:
     DID_API_KEY = os.environ.get("DID_API_KEY")
     DID_API_URL = "https://api.d-id.com/talks"
     DID_SOURCE_URL = "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
-    DID_WEBHOOK_URL = os.environ.get("DID_WEBHOOK_URL", f"{SERVER_URL}/api/webhook")
+    DID_WEBHOOK_URL = os.environ.get("DID_WEBHOOK_URL", f"{NGROK_URL}/api/webhook")
