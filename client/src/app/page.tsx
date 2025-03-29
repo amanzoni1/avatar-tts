@@ -21,7 +21,8 @@ const SOCKET_SERVER_URL = "http://localhost:5003";
 
 export default function Home() {
   const [text, setText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For the API call
+  const [isProcessing, setIsProcessing] = useState(false); // For waiting until video is ready
   const [error, setError] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,7 +39,8 @@ export default function Home() {
       if (data.result_url) {
         setVideoUrl(data.result_url);
         setIsPlaying(true);
-        setVideoHistory(prev => [{ url: data.result_url, text }, ...prev].slice(0, 3));
+        setVideoHistory(prev => [{ url: data.result_url, text }, ...prev].slice(0, 2));
+        setIsProcessing(false);
       }
     });
 
@@ -53,6 +55,7 @@ export default function Home() {
     if (!text.trim()) return;
 
     setIsLoading(true);
+    setIsProcessing(true);
     setError("");
     setVideoUrl(null);
     setIsPlaying(false);
@@ -120,15 +123,17 @@ export default function Home() {
                   placeholder="Type your text here..."
                   maxLength={maxChars}
                 />
-                <p className={styles.charCounter}>{text.length} / {maxChars}</p>
+                <p className={styles.charCounter}>
+                  {text.length} / {maxChars}
+                </p>
               </div>
               <div className={styles.buttonRow}>
                 <button
                   type="submit"
-                  disabled={isLoading || !text.trim()}
+                  disabled={isLoading || isProcessing || !text.trim()}
                   className={styles.generateButton}
                 >
-                  {isLoading ? "Generating..." : "Generate Avatar's Speech"}
+                  {isLoading || isProcessing ? "Generating..." : "Generate Avatar's Speech"}
                 </button>
               </div>
               {error && <p className={styles.error}>{error}</p>}

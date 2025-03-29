@@ -1,5 +1,7 @@
-import requests
+import os
+import time
 import json
+import requests
 import logging
 from typing import Dict, Any
 from flask import current_app
@@ -20,7 +22,7 @@ class AvatarService:
         logger.info(f"AvatarService initialized with source URL: {self.source_url}")
 
     def generate_avatar_video(self, text: str, audio_url: str) -> Dict[str, Any]:
-        auth_header = f"Basic {self.did_api_key}"  # "username:password" format
+        auth_header = f"Basic {self.did_api_key}"
 
         headers = {
             "accept": "application/json",
@@ -53,7 +55,6 @@ class AvatarService:
             return {
                 "talk_id": result.get("id"),
                 "status": result.get("status"),
-                "result_url": result.get("result_url")
             }
         except requests.exceptions.RequestException as e:
             error_json = {}
@@ -65,7 +66,7 @@ class AvatarService:
             description = error_json.get("description", "").lower()
             logger.error(f"Audio request failed: {json.dumps(error_json, indent=2)}")
 
-            # Check if the error description indicates that the audio file could not be validated.
+            # If error indicates audio validation failed, fallback to text script.
             if "cannot validate" in description and "audio" in description:
                 logger.info("Audio validation failed; falling back to text script.")
                 fallback_payload = {
@@ -75,7 +76,7 @@ class AvatarService:
                         "input": text
                     },
                     "config": {
-                        "stitch": True  # Add any other desired config settings
+                        "stitch": True
                     },
                     "webhook": current_app.config["DID_WEBHOOK_URL"]
                 }
@@ -88,7 +89,6 @@ class AvatarService:
                     return {
                         "talk_id": result.get("id"),
                         "status": result.get("status"),
-                        "result_url": result.get("result_url")
                     }
                 except requests.exceptions.RequestException as fallback_exception:
                     logger.error(f"Fallback request error: {fallback_exception}")

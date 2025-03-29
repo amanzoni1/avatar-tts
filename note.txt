@@ -1,0 +1,4 @@
+-improve overall quality finetuning voice and text
+-consider send directly text to d-id
+-video clip optional presentation
+-better git readme
