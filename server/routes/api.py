@@ -2,10 +2,37 @@ import os
 import time
 import requests
 from flask import Blueprint, request, jsonify, send_file, current_app
+from services.fast_gen import FastGenService
 from services.tts_service import TTSService
 from services.avatar_service import AvatarService
 
 api_bp = Blueprint('api', __name__)
+
+
+@api_bp.route("/fast-generate", methods=["POST"])
+def fast_generate():
+    """
+    Fast endpoint to generate an avatar video directly from text.
+    This endpoint sends the text directly to D-ID using a text script payload.
+    It includes ElevenLabs provider details so that D-ID can internally generate the audio.
+    """
+    try:
+        data = request.get_json()
+        if not data or "text" not in data:
+            return jsonify({"error": "No text provided"}), 400
+
+        text = data["text"]
+
+        # Create an instance of FastGenService
+        fast_gen_service = FastGenService()
+        # Call the new function to generate a talk directly from text.
+        talk_result = fast_gen_service.generate_avatar_video_text(text)
+        return jsonify(talk_result), 200
+
+    except Exception as e:
+        current_app.logger.error("Error in /fast-generate: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
 
 @api_bp.route("/generate", methods=["POST"])
 def generate():

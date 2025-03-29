@@ -13,7 +13,7 @@ class Config:
     CORS_ORIGINS = ['http://localhost:3003']
 
     # Server settings
-    NGROK_URL = "https://09db-94-205-217-109.ngrok-free.app"
+    NGROK_URL = "https://766f-94-205-217-109.ngrok-free.app"
     # SERVER_URL = NGROK_URL
     SERVER_URL = 'http://localhost:5003'
 

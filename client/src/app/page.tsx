@@ -63,7 +63,7 @@ export default function Home() {
     const SERVER_URL = "http://localhost:5003";
     try {
       const response = await axios.post<AvatarResponse>(
-        `${SERVER_URL}/api/generate`,
+        `${SERVER_URL}/api/fast-generate`,
         { text },
         { headers: { "Content-Type": "application/json" } }
       );

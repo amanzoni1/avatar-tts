@@ -1,5 +1,3 @@
-import os
-import time
 import json
 import requests
 import logging
@@ -39,7 +37,6 @@ class AvatarService:
             },
             "config": {
                 "fluent": False,
-                "pad_audio": 0,
                 "stitch": True
             },
             "webhook": current_app.config["DID_WEBHOOK_URL"]

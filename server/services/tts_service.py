@@ -1,6 +1,5 @@
 import os
 import time
-import base64
 import logging
 import requests
 from flask import current_app
