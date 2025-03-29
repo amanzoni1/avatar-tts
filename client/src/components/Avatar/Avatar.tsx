@@ -26,7 +26,7 @@ const Avatar: React.FC<AvatarProps> = ({ videoUrl, isPlaying, onVideoEnd, onRepl
   if (!videoUrl) {
     return (
       <img
-        src="https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
+        src="https://res.cloudinary.com/drvwan14l/image/upload/v1743239627/magen_igp4ts.png"
         alt="Default Avatar"
         className={styles.avatarMedia}
       />

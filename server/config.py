@@ -35,5 +35,6 @@ class Config:
     # D-ID settings
     DID_API_KEY = os.environ.get("DID_API_KEY")
     DID_API_URL = "https://api.d-id.com/talks"
-    DID_SOURCE_URL = "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
+    # DID_SOURCE_URL = "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
+    DID_SOURCE_URL = "https://res.cloudinary.com/drvwan14l/image/upload/v1743239627/magen_igp4ts.png"
     DID_WEBHOOK_URL = os.environ.get("DID_WEBHOOK_URL", f"{NGROK_URL}/api/webhook")
