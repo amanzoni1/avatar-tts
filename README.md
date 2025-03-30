@@ -20,6 +20,35 @@ This project creates a simplified version of an AI avatar system where:
 - **Presentation Page**:
   Navigate to `/presentation` to view a pre-recorded presentation video.
 
+## 📂 Project Structure
+
+```
+client/
+├── public/
+│   └── talks.mp4            # Demo video for presentation
+├── src/
+│   ├── components/
+│   │   └── Avatar/
+│   └── app/
+│       ├── page.tsx         # Main page with avatar display and text input
+│       ├── presentation/    # Page for demo video presentation
+│       └── global.css       # Global styles
+└── ...
+
+server/
+├── app.py                   # Flask application setup
+├── config.py                # Configuration variables
+├── run.py                   # Server entry point
+├── create_speech.py         # Script for creating demo videos
+├── routes/
+│   ├── api.py               # API endpoint definitions
+│   └── health.py            # Health check endpoint
+└── services/
+    ├── avatar_service.py    # D-ID API integration for avatar creation
+    ├── fast_gen.py          # Direct D-ID integration with ElevenLabs
+    └── tts_service.py       # ElevenLabs API integration for TTS
+```
+
 ## 🛠️ Technology Stack
 
 ### Backend (Flask)
@@ -55,35 +84,6 @@ This project creates a simplified version of an AI avatar system where:
 4. D-ID generates the avatar video and notifies server via webhook
 5. Server notifies client via Socket.IO when the video is ready
 6. Client displays the video with synchronized speech and facial animations
-
-## 📂 Project Structure
-
-```
-client/
-├── public/
-│   └── talks.mp4            # Demo video for presentation
-├── src/
-│   ├── components/
-│   │   └── Avatar/
-│   └── app/
-│       ├── page.tsx         # Main page with avatar display and text input
-│       ├── presentation/    # Page for demo video presentation
-│       └── global.css       # Global styles
-└── ...
-
-server/
-├── app.py                   # Flask application setup
-├── config.py                # Configuration variables
-├── run.py                   # Server entry point
-├── create_speech.py         # Script for creating demo videos
-├── routes/
-│   ├── api.py               # API endpoint definitions
-│   └── health.py            # Health check endpoint
-└── services/
-    ├── avatar_service.py    # D-ID API integration for avatar creation
-    ├── fast_gen.py          # Direct D-ID integration with ElevenLabs
-    └── tts_service.py       # ElevenLabs API integration for TTS
-```
 
 ## 📊 Technical Implementation Details
 
