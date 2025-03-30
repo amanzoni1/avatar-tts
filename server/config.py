@@ -24,12 +24,9 @@ class Config:
     AUDIO_DIR = os.path.join(BASE_DIR, 'audio')
     os.makedirs(AUDIO_DIR, exist_ok=True)
 
-    # TTS Provider settings
-    TTS_PROVIDER = os.environ.get('TTS_PROVIDER', 'elevenlabs')  # 'gtts' or 'elevenlabs'
-
     # ElevenLabs settings
     ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
-    ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID")
+    ELEVENLABS_VOICE_ID = "XrExE9yKIg1WjnnlVkGX"
     ELEVENLABS_MAX_CHARS = 350  # Maximum characters per request (approximately 30 seconds of audio)
 
     # D-ID settings
@@ -37,4 +34,4 @@ class Config:
     DID_API_URL = "https://api.d-id.com/talks"
     # DID_SOURCE_URL = "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/alice.jpg"
     DID_SOURCE_URL = "https://res.cloudinary.com/drvwan14l/image/upload/v1743239627/magen_igp4ts.png"
-    DID_WEBHOOK_URL = os.environ.get("DID_WEBHOOK_URL", f"{NGROK_URL}/api/webhook")
+    DID_WEBHOOK_URL = f"{NGROK_URL}/api/webhook"
