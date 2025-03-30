@@ -110,25 +110,3 @@ def webhook():
     except Exception as e:
         current_app.logger.error("Webhook error: %s", str(e))
         return jsonify({"error": "Webhook processing failed"}), 500
-
-
-# @api_bp.route("/talk/<talk_id>", methods=["GET"])
-# def get_talk_status(talk_id):
-#     """
-#     Proxy endpoint to fetch talk status from D-ID.
-#     Calls D-ID's GET /talks/<talk_id> endpoint using Basic Auth.
-#     """
-#     try:
-#         auth_header = f"Basic {current_app.config['DID_API_KEY']}"
-#         headers = {
-#             "accept": "application/json",
-#             "Authorization": auth_header
-#         }
-#         url = f"{current_app.config['DID_API_URL']}/{talk_id}"
-#         response = requests.get(url, headers=headers)
-#         response.raise_for_status()
-#         return jsonify(response.json()), 200
-#     except requests.exceptions.RequestException as e:
-#         error_message = f"Failed to fetch talk status: {str(e)}"
-#         current_app.logger.error(error_message)
-#         return jsonify({"error": error_message}), response.status_code if response else 500

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import axios from "axios";
 import io from "socket.io-client";
 import styles from "./page.module.css";
@@ -93,7 +94,7 @@ export default function Home() {
         <div className={styles.subtitle}>
           <p>
             GitHub Repo: <a href="https://github.com/amanzoni1/avatar-tts" target="_blank" rel="noopener noreferrer">View Code</a> |
-            Short Video: <a href="https://youtu.be/yourvideoid" target="_blank" rel="noopener noreferrer">Watch Presentation</a>
+            Short Video: <Link href="/presentation">Watch Presentation</Link>
           </p>
         </div>
 
