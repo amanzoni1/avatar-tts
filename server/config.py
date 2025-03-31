@@ -7,13 +7,15 @@ load_dotenv()
 class Config:
     # Flask settings
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev'
-    DEBUG = True
+    DEBUG = False
 
     # CORS settings
-    CORS_ORIGINS = ['http://localhost:3003']
+    CORS_ORIGINS = ['https://avatar-tts.vercel.app']
+    # CORS_ORIGINS = ['http://localhost:3003']
 
     # Server settings
-    NGROK_URL = "https://f9ee-94-205-217-109.ngrok-free.app"
+    # NGROK_URL = "https://f9ee-94-205-217-109.ngrok-free.app"
+    # SERVER_URL = 'http://localhost:5003'
     SERVER_URL = 'http://localhost:5003'
 
     # BASE_DIR: set to the server folder
@@ -32,4 +34,4 @@ class Config:
     DID_API_KEY = os.environ.get("DID_API_KEY")
     DID_API_URL = "https://api.d-id.com/talks"
     DID_SOURCE_URL = "https://res.cloudinary.com/drvwan14l/image/upload/v1743239627/magen_igp4ts.png"
-    DID_WEBHOOK_URL = f"{NGROK_URL}/api/webhook"
+    DID_WEBHOOK_URL = f"{SERVER_URL}/api/webhook"

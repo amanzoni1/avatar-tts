@@ -12,8 +12,7 @@ This project creates a simplified version of an AI avatar system where:
 
 ## 🔍 Live Demo & Usage
 
-- **Live Demo**:
-  <!-- [https://avatar-tts-demo.vercel.app](https://avatar-tts-demo.vercel.app) -->
+- **Live Demo**: [https://avatar-tts.vercel.app](https://avatar-tts.vercel.app)
 
   On the main page, enter text in the input field and click "Generate Avatar's Speech." The client will show the avatar speaking once the video is processed.
 

@@ -29,7 +29,7 @@ const Avatar: React.FC<AvatarProps> = ({ videoUrl, isPlaying, onVideoEnd, onRepl
     return (
       <div className={styles.avatarContainer} onClick={onReplay}>
         <Image
-          src="https://res.cloudinary.com/drvwan14l/image/upload/v1743239627/magen_igp4ts.png"
+          src="/magen.png"
           alt="Default Avatar"
           className={styles.avatarMedia}
           width={400}

@@ -54,7 +54,8 @@ def generate():
         # Generate TTS audio.
         tts_service = TTSService()
         tts_result = tts_service.generate_speech(text)
-        audio_url = f"{current_app.config['NGROK_URL']}/api/audio/{tts_result['filename']}"
+        audio_url = f"{current_app.config['SERVER_URL']}/api/audio/{tts_result['filename']}"
+        # audio_url = f"{current_app.config['NGROK_URL']}/api/audio/{tts_result['filename']}"
 
         time.sleep(3)
 
