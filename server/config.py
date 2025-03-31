@@ -10,8 +10,12 @@ class Config:
     DEBUG = False
 
     # CORS settings
-    CORS_ORIGINS = ['https://avatar-tts.vercel.app']
     # CORS_ORIGINS = ['http://localhost:3003']
+    CORS_ORIGINS = [
+        'https://avatar-tts.vercel.app',
+        'https://avatar-tts-git-main-andreas-projects-9d3941c6.vercel.app',
+        'https://avatar-tts-andreas-projects-9d3941c6.vercel.app'
+    ]
 
     # Server settings
     # NGROK_URL = "https://f9ee-94-205-217-109.ngrok-free.app"
