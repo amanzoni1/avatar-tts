@@ -178,13 +178,19 @@ Socket.IO is used for real-time communication:
    npm install
    ```
 
-3. Start the development server
+3. Create a `.env` file with your Server Url
+
+   ```
+   NEXT_PUBLIC_SERVER_URL=http://localhost:5003
+   ```
+
+4. Start the development server
 
    ```bash
    npm run dev
    ```
 
-4. Open your browser to `http://localhost:3003`
+å5. Open your browser to `http://localhost:3003`
 
 ## 🙏 Acknowledgements
 

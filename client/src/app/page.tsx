@@ -18,7 +18,11 @@ interface VideoHistoryItem {
   text: string;
 }
 
-const SOCKET_SERVER_URL = "http://localhost:5003";
+interface VideoReadyEvent {
+  result_url?: string;
+}
+
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -32,15 +36,15 @@ export default function Home() {
 
   // Function to poll the GET endpoint for talk status.
   useEffect(() => {
-    const socket = io(SOCKET_SERVER_URL);
+    const socket = io(SERVER_URL);
 
     // Listen for the video_ready event.
-    socket.on("video_ready", (data: any) => {
+    socket.on("video_ready", (data: VideoReadyEvent) => {
       console.log("Received video_ready event:", data);
       if (data.result_url) {
         setVideoUrl(data.result_url);
         setIsPlaying(true);
-        setVideoHistory(prev => [{ url: data.result_url, text }, ...prev].slice(0, 2));
+        setVideoHistory(prev => [{ url: data.result_url || "", text }, ...prev].slice(0, 2));
         setIsProcessing(false);
       }
     });
@@ -61,7 +65,6 @@ export default function Home() {
     setVideoUrl(null);
     setIsPlaying(false);
 
-    const SERVER_URL = "http://localhost:5003";
     try {
       const response = await axios.post<AvatarResponse>(
         `${SERVER_URL}/api/fast-generate`,
