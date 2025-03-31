@@ -14,7 +14,8 @@ class Config:
     CORS_ORIGINS = [
         'https://avatar-tts.vercel.app',
         'https://avatar-tts-git-main-andreas-projects-9d3941c6.vercel.app',
-        'https://avatar-tts-andreas-projects-9d3941c6.vercel.app'
+        'https://avatar-tts-andreas-projects-9d3941c6.vercel.app',
+        'https://avatar-m4i4i9n1z-andreas-projects-9d3941c6.vercel.app'
     ]
 
     # Server settings
