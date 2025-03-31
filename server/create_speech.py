@@ -5,6 +5,9 @@ import json
 import requests
 import logging
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -12,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 DID_API_KEY = os.environ.get("DID_API_KEY")
 TALK_API_URL = "https://api.d-id.com/talks"
-DID_SOURCE_URL = "https://res.cloudinary.com/drvwan14l/image/upload/v1743349017/Joaquin_tua64n.png"
+DID_SOURCE_URL = "https://res.cloudinary.com/drvwan14l/image/upload/v1743403431/Joaquin_xmhhqp.jpg"
 ELEVENLABS_VOICE_CLIP_ID = "CwhRBWXzGAHq8TQ4Fs17"
 POLL_INTERVAL = 5
 TIMEOUT = 300
@@ -32,11 +35,11 @@ def create_talk(text: str) -> dict:
                 "voice_id": ELEVENLABS_VOICE_CLIP_ID,
                 "voice_config": {
                     "model_id": "eleven_multilingual_v2",
-                    "stability": 0.8,
+                    "stability": 0.85,
                     "similarity_boost": 1,
                     "style": 0.0,
                     "use_speaker_boost": True,
-                    "speed": 0.8
+                    "speed": 0.75
                 }
             }
         },
@@ -125,7 +128,20 @@ def download_video(video_url: str, save_dir: str = "talks") -> str:
         sys.exit(1)
 
 def main():
-    text = "If you what you always done, you'll get what you always gotten."
+    text = """Hello there! I'm Joaquin, your AI avatar host for today. Welcome to the Avatar Text-to-Speech project demonstration.
+
+        What you're witnessing right now is exactly what this project is all about – a synthetic voice synchronized with facial animations to create a natural-looking digital presenter. Pretty cool, right?
+
+        This system works by taking text input, converting it to speech using ElevenLabs' advanced TTS technology, and then synchronizing that audio with facial animations through D-ID's animation API. The result is what you see now – an avatar that can deliver messages with realistic expressions and lip movements.
+
+        If you'd like to try this out yourself, you can visit the live demo at the link provided above. There, you can type any text you want into the input field, click "Generate Avatar's Speech," and watch as Magen brings your words to life with appropriate facial movements and expressions.
+
+        Additionally, all the code, documentation, and methodology behind this project are available on GitHub – you'll find the link above as well. There, you can explore the full implementation, including the server architecture, API integrations, and frontend components.
+
+        Thank you for taking the time to review my work, and I look forward to discussing how this system can drive innovative solutions in communication and beyond. Enjoy the demo and feel free to reach out with any questions!
+
+        Until next time, this is Joaquin signing off. I hope to speak your words soon!"""
+
     talk_metadata = create_talk(text)
     talk_id = talk_metadata["talk_id"]
     logger.info(f"Talk ID: {talk_id}")

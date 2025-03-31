@@ -12,7 +12,7 @@ export default function Presentation() {
         <div className={styles.subtitle}>
             <p>
             GitHub Repo: <a href="https://github.com/amanzoni1/avatar-tts" target="_blank" rel="noopener noreferrer">View Code</a> |
-            Live Demo: <Link href="/">Watch the Avatar</Link>
+            Live Demo: <Link href="/">Watch Live</Link>
           </p>
         </div>
         <div className={styles.videoContainer}>
