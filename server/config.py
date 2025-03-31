@@ -16,7 +16,7 @@ class Config:
     # Server settings
     # NGROK_URL = "https://f9ee-94-205-217-109.ngrok-free.app"
     # SERVER_URL = 'http://localhost:5003'
-    SERVER_URL = 'http://localhost:5003'
+    SERVER_URL = 'https://avatar-tts.onrender.com'
 
     # BASE_DIR: set to the server folder
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
