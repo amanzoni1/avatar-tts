@@ -32,8 +32,8 @@ const Avatar: React.FC<AvatarProps> = ({ videoUrl, isPlaying, onVideoEnd, onRepl
           src="/magen.png"
           alt="Default Avatar"
           className={styles.avatarMedia}
-          width={400}
-          height={400}
+          width={800}
+          height={800}
         />
       </div>
     );
